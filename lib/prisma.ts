@@ -6,7 +6,15 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+// Parse the DATABASE_URL and ensure it has the correct SSL mode
+const databaseUrl = process.env.DATABASE_URL || "";
+const connectionString = databaseUrl.includes("sslmode=")
+  ? databaseUrl
+  : databaseUrl.includes("?")
+  ? `${databaseUrl}&sslmode=verify-full`
+  : `${databaseUrl}?sslmode=verify-full`;
+
+const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 
 export const prisma =

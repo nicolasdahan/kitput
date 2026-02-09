@@ -2,16 +2,16 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 interface ProductsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     category?: string;
     search?: string;
     minPrice?: string;
     maxPrice?: string;
     page?: string;
-  };
+  }>;
 }
 
-async function getProducts(searchParams: ProductsPageProps["searchParams"]) {
+async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams"]>) {
   const page = parseInt(searchParams.page || "1");
   const limit = 12;
   const skip = (page - 1) * limit;
@@ -91,10 +91,11 @@ async function getProducts(searchParams: ProductsPageProps["searchParams"]) {
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
+  const resolvedSearchParams = await searchParams;
   const { products, total, categories, currentPage, totalPages } =
-    await getProducts(searchParams);
+    await getProducts(resolvedSearchParams);
 
-  const currentCategory = searchParams.category || null;
+  const currentCategory = resolvedSearchParams.category || null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,7 +124,7 @@ export default async function ProductsPage({
                   <input
                     type="text"
                     name="search"
-                    defaultValue={searchParams.search}
+                    defaultValue={resolvedSearchParams.search}
                     placeholder="Search products..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -184,11 +185,11 @@ export default async function ProductsPage({
                       value={currentCategory}
                     />
                   )}
-                  {searchParams.search && (
+                  {resolvedSearchParams.search && (
                     <input
                       type="hidden"
                       name="search"
-                      value={searchParams.search}
+                      value={resolvedSearchParams.search}
                     />
                   )}
                   <div className="space-y-3">
@@ -199,7 +200,7 @@ export default async function ProductsPage({
                       <input
                         type="number"
                         name="minPrice"
-                        defaultValue={searchParams.minPrice}
+                        defaultValue={resolvedSearchParams.minPrice}
                         placeholder="$0"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -211,7 +212,7 @@ export default async function ProductsPage({
                       <input
                         type="number"
                         name="maxPrice"
-                        defaultValue={searchParams.maxPrice}
+                        defaultValue={resolvedSearchParams.maxPrice}
                         placeholder="$999"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -315,7 +316,7 @@ export default async function ProductsPage({
                     {currentPage > 1 && (
                       <Link
                         href={`/products?${new URLSearchParams({
-                          ...searchParams,
+                          ...resolvedSearchParams,
                           page: String(currentPage - 1),
                         }).toString()}`}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -328,7 +329,7 @@ export default async function ProductsPage({
                         <Link
                           key={page}
                           href={`/products?${new URLSearchParams({
-                            ...searchParams,
+                            ...resolvedSearchParams,
                             page: String(page),
                           }).toString()}`}
                           className={`px-4 py-2 rounded-md text-sm font-medium ${
@@ -344,7 +345,7 @@ export default async function ProductsPage({
                     {currentPage < totalPages && (
                       <Link
                         href={`/products?${new URLSearchParams({
-                          ...searchParams,
+                          ...resolvedSearchParams,
                           page: String(currentPage + 1),
                         }).toString()}`}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"

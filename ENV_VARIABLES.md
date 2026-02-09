@@ -20,6 +20,11 @@ Format:
 postgresql://user:password@host:port/database
 ```
 
+**Note:** The application automatically appends `sslmode=verify-full` to the connection string if not already present. If you need a different SSL mode, you can explicitly add it to your DATABASE_URL:
+```
+postgresql://user:password@host:port/database?sslmode=verify-full
+```
+
 ## Setting Variables in Vercel
 
 1. Go to your Vercel project dashboard

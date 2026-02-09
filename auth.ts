@@ -7,8 +7,15 @@ import { compare } from 'bcrypt'
 import Credentials from 'next-auth/providers/credentials'
 import { User } from '@prisma/client'
 
-// Create PostgreSQL connection pool
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+// Create PostgreSQL connection pool with explicit SSL mode
+const databaseUrl = process.env.DATABASE_URL || ''
+const connectionString = databaseUrl.includes('sslmode=')
+  ? databaseUrl
+  : databaseUrl.includes('?')
+  ? `${databaseUrl}&sslmode=verify-full`
+  : `${databaseUrl}?sslmode=verify-full`
+
+const pool = new pg.Pool({ connectionString })
 
 // Create Prisma adapter
 const adapter = new PrismaPg(pool)
