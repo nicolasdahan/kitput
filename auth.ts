@@ -1,20 +1,22 @@
-import NextAuth, { DefaultSession } from 'next-auth'
+import NextAuth from 'next-auth'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 import authConfig from './auth.config'
-import bcrypt from 'bcryptjs'
+import { compare } from 'bcrypt'
 import Credentials from 'next-auth/providers/credentials'
+import Google from 'next-auth/providers/google'
+import GitHub from 'next-auth/providers/github'
 import { User } from '@prisma/client'
 
-const prisma = new PrismaClient()
+// Create PostgreSQL connection pool
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string
-      role?: 'USER' | 'ADMIN'
-    } & DefaultSession['user']
-  }
-}
+// Create Prisma adapter
+const adapter = new PrismaPg(pool)
+
+// Initialize Prisma Client with adapter
+const prisma = new PrismaClient({ adapter })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: '/api/auth',
@@ -25,6 +27,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // error: '/auth/error',
   },
   providers: [
+    // OAuth providers (optional - only initialized if env vars are set)
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       name: 'credentials',
       credentials: {
@@ -47,7 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password)
+        const isPasswordValid = await compare(password, user.password)
 
         if (!isPasswordValid) {
           return null

@@ -1,11 +1,5 @@
 import type { NextAuthConfig } from 'next-auth'
 
-declare module 'next-auth' {
-  interface User {
-    role?: 'USER' | 'ADMIN'
-  }
-}
-
 export default {
   providers: [],
   callbacks: {
