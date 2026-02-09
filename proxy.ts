@@ -6,16 +6,9 @@ import authConfig from "./auth.config";
 export const { auth: proxy } = NextAuth(authConfig);
 
 export default proxy((req) => {
-  // You can add custom proxy logic here
-  // For example, protecting certain routes
-  
-  // Example: Redirect to signin if not authenticated
-  // const isLoggedIn = !!req.auth;
-  // const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
-  // 
-  // if (!isLoggedIn && !isAuthPage) {
-  //   return Response.redirect(new URL('/auth/signin', req.nextUrl));
-  // }
+  // Proxy handles auth session management
+  // Let all requests pass through for now
+  return;
 });
 
 export const config = {
