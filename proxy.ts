@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
+import { NextResponse } from "next/server";
 
 // Create a separate Auth.js instance for proxy (edge runtime)
 // This one doesn't have database adapter - safe for edge
@@ -7,8 +8,8 @@ export const { auth: proxy } = NextAuth(authConfig);
 
 export default proxy((req) => {
   // Proxy handles auth session management
-  // Let all requests pass through for now
-  return;
+  // Explicitly return NextResponse.next() to allow request to continue
+  return NextResponse.next();
 });
 
 export const config = {
