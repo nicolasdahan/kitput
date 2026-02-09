@@ -53,15 +53,15 @@
 
 ### 2. Database and Authentication [X]
 
-- [ ] Set up PostgreSQL database
-- [ ] Configure Prisma schema:
+- [x] Set up PostgreSQL database
+- [x] Configure Prisma schema:
   - User model
   - Product model
   - Category model
   - Order model
   - Review model
   - Cart model
-- [ ] Implement NextAuth.js authentication:
+- [x] Implement NextAuth.js authentication:
   - Email/Password
   - OAuth providers (Google, GitHub)
   - JWT handling
@@ -69,13 +69,13 @@
 
 ### 3. Core Features - Customer Side [ ]
 
-- [ ] Home Layout:
-  - Create `(home)` folder in `app` directory
-  - Header with logo, search bar, and navigation
-  - Footer with links and social media
-- [ ] Homepage:
-  - banner carousel
-  - latest products
+- [x] Home Layout:
+  - [x] Create `(home)` folder in `app` directory
+  - [x] Header with logo, search bar, and navigation
+  - [x] Footer with links and social media
+- [x] Homepage:
+  - [x] banner carousel
+  - [x] latest products
 - [x] Products Catalog:
   - Sidebar with categories and filters
   - Search results
