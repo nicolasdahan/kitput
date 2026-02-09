@@ -1,31 +1,14 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 
 // This is the base configuration without database adapter
-// Safe to use in edge runtimes (middleware)
+// Safe to use in edge runtimes (proxy/middleware)
+// OAuth providers are in auth.ts since they're not needed in edge runtime
 export default {
   pages: {
     signIn: "/auth/signin",
   },
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? [
-          GitHub({
-            clientId: process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          }),
-        ]
-      : []),
     Credentials({
       name: "Credentials",
       credentials: {
