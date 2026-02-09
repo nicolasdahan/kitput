@@ -7,9 +7,9 @@ import { ReviewSection } from "@/components/products/review-section";
 import { RelatedProducts } from "@/components/products/related-products";
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getProduct(id: string) {
@@ -64,8 +64,9 @@ async function getRelatedProducts(categoryId: string, currentProductId: string) 
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params;
   const [product, session] = await Promise.all([
-    getProduct(params.id),
+    getProduct(id),
     auth(),
   ]);
 
@@ -75,7 +76,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const relatedProducts = await getRelatedProducts(
     product.categoryId,
-    product.id
+    id
   );
 
   const avgRating =
