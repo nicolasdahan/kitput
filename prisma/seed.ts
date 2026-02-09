@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import { hash } from 'bcrypt';
 
 // Créer un pool de connexion PostgreSQL
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -32,11 +33,12 @@ async function main() {
 
   // Create Users
   console.log('👥 Creating users...');
+  const defaultPassword = await hash('admin123', 10);
   const adminUser = await prisma.user.create({
     data: {
       name: 'Admin User',
       email: 'admin@kitput.com',
-      password: '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u', // password: admin123
+      password: defaultPassword,
       role: 'ADMIN',
       image: '/images/banner1.jpg',
     },
@@ -46,7 +48,7 @@ async function main() {
     data: {
       name: 'John Doe',
       email: 'john@example.com',
-      password: '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u', // password: admin123
+      password: defaultPassword,
       role: 'USER',
       image: '/images/banner2.jpg',
     },
@@ -56,7 +58,7 @@ async function main() {
     data: {
       name: 'Jane Smith',
       email: 'jane@example.com',
-      password: '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u', // password: admin123
+      password: defaultPassword,
       role: 'USER',
       image: '/images/banner3.jpg',
     },
