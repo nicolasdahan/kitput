@@ -1,86 +1,82 @@
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
-import { compare } from "bcrypt";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
-import authConfig from "./auth.config";
+import NextAuth, { DefaultSession } from 'next-auth'
+import { PrismaClient } from '@prisma/client'
+import authConfig from './auth.config'
+import bcrypt from 'bcryptjs'
+import Credentials from 'next-auth/providers/credentials'
+import { User } from '@prisma/client'
 
-// Create PostgreSQL connection pool
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient()
 
-// Create Prisma adapter
-const adapter = new PrismaPg(pool);
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      role?: 'USER' | 'ADMIN'
+    } & DefaultSession['user']
+  }
+}
 
-// Initialize Prisma Client
-const prisma = new PrismaClient({ adapter });
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma) as any,
-  session: {
-    strategy: "jwt",
-  },
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  basePath: '/api/auth',
+  session: { strategy: 'jwt' },
   ...authConfig,
+  pages: {
+    // signIn: '/auth/signin',
+    // error: '/auth/error',
+  },
   providers: [
-    // OAuth providers (only initialized in server-side, not in edge runtime)
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? [
-          GitHub({
-            clientId: process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          }),
-        ]
-      : []),
-    // Override Credentials provider with database access
     Credentials({
-      name: "Credentials",
+      name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          return null
         }
+
+        const email = credentials.email as string
+        const password = credentials.password as string
 
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email as string,
-          },
-        });
+          where: { email },
+        })
 
         if (!user || !user.password) {
-          return null;
+          return null
         }
 
-        const isPasswordValid = await compare(
-          credentials.password as string,
-          user.password
-        );
+        const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if (!isPasswordValid) {
-          return null;
+          return null
         }
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
           image: user.image,
-        };
+          role: user.role,
+        }
       },
     }),
   ],
-});
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as User).role
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role as 'USER' | 'ADMIN'
+        session.user.id = token.id as string
+      }
+      return session
+    },
+  },
+})

@@ -1,42 +1,37 @@
-import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import type { NextAuthConfig } from 'next-auth'
 
-// This is the base configuration without database adapter
-// Safe to use in edge runtimes (proxy/middleware)
-// OAuth providers are in auth.ts since they're not needed in edge runtime
+declare module 'next-auth' {
+  interface User {
+    role?: 'USER' | 'ADMIN'
+  }
+}
+
 export default {
-  pages: {
-    signIn: "/auth/signin",
-  },
-  providers: [
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      // Note: authorize function will be overridden in auth.ts
-      // This is just a placeholder for the config
-      async authorize(credentials) {
-        return null;
-      },
-    }),
-  ],
+  providers: [],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
+        token.id = user.id as string
+        token.email = user.email
+        token.name = user.name
+        token.image = user.image
+        token.role = user.role
       }
-      return token;
+      return token
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+      if (token && session.user) {
+        session.user.id = token.id as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+        session.user.image = token.image as string | null
+        session.user.role = token.role as 'USER' | 'ADMIN'
       }
-      return session;
+      return session
     },
   },
-} satisfies NextAuthConfig;
-
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
+} satisfies NextAuthConfig
