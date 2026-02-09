@@ -1,0 +1,600 @@
+# Cursor Rules
+
+## Instructions
+
+- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
+- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
+- Clear old tasks if necessary.
+- Use todo markers for progress tracking:
+  - `[X]` Completed tasks
+  - `[ ]` Pending tasks
+- Update Scratchpad after completing subtasks.
+- Reflect and plan after milestones for better task management.
+- Always refer to Scratchpad before planning the next step.
+
+## Lessons
+
+1. Use `npx shadcn@latest add [component]` instead of `npx shadcn-ui@latest add [component]` when installing Shadcn UI components.
+2. In Next.js 14+, page props params must be typed as a Promise. Example:
+   ```typescript
+   type tParams = Promise<{ id: string }>
+   interface PageProps {
+     params: tParams
+   }
+   ```
+   Then await the params in the component:
+   ```typescript
+   export default async function Page(props: PageProps) {
+     const { id } = await props.params
+   }
+   ```
+3. Use `const session = await auth()` instead of `const session = await getServerSession(authOptions)` for Next.js authentication. The new `auth()` function is the recommended way to get the session in Next.js Auth v5.
+4. When importing `useRouter` from 'next/navigation', the component must be marked as a client component using the `'use client'` directive at the top of the file, as this hook only works on the client side.
+
+## Scratchpad
+
+### 1. Install and Configure Dependencies [ ]
+
+#### Core Dependencies
+- [ ] Install Shadcn UI:
+  - Run `npx shadcn@latest init` (choose Next.js project when prompted)
+  - This will configure components.json with TypeScript, Tailwind, and path aliases
+  - Add initial components using `npx shadcn@latest add [component]`:
+    - `npx shadcn@latest add button`
+    - `npx shadcn@latest add card`
+    - `npx shadcn@latest add input`
+    - `npx shadcn@latest add label`
+    - `npx shadcn@latest add form`
+    - `npx shadcn@latest add dialog`
+    - `npx shadcn@latest add dropdown-menu`
+    - `npx shadcn@latest add table`
+    - `npx shadcn@latest add badge`
+    - `npx shadcn@latest add separator`
+    - `npx shadcn@latest add tabs`
+    - `npx shadcn@latest add select`
+    - `npx shadcn@latest add textarea`
+    - `npx shadcn@latest add checkbox`
+    - `npx shadcn@latest add avatar`
+    - `npx shadcn@latest add skeleton`
+    - `npx shadcn@latest add toast`
+    - `npx shadcn@latest add alert`
+  - Components will be added to `components/ui/` directory
+  - Import components like: `import { Button } from "@/components/ui/button"`
+- [ ] Install UI and Icon Libraries:
+  - `npm install lucide-react` (icons)
+  - `npm install class-variance-authority clsx tailwind-merge` (utility classes)
+- [ ] Install State Management and Validation:
+  - `npm install zustand` (global state)
+  - `npm install zod react-hook-form @hookform/resolvers` (form validation)
+- [ ] Install Data Visualization:
+  - `npm install recharts` (charts for admin dashboard)
+  - `npm install date-fns` (date formatting for charts)
+
+#### Backend and Database
+- [ ] Install Prisma and Database:
+  - `npm install @prisma/client`
+  - `npm install -D prisma`
+  - Run `npx prisma init`
+  - Configure PostgreSQL connection in `.env`
+- [ ] Install Authentication:
+  - `npm install next-auth@beta` (v5)
+  - `npm install bcryptjs @types/bcryptjs`
+  - `npm install @auth/prisma-adapter`
+
+#### Payment and File Upload
+- [ ] Install Stripe:
+  - `npm install stripe @stripe/stripe-js`
+  - `npm install @stripe/react-stripe-js` (for checkout UI)
+- [ ] Install Uploadthing:
+  - `npm install uploadthing @uploadthing/react`
+  - Set up Uploadthing account and get API keys
+
+#### Email Service
+- [ ] Install Resend:
+  - `npm install resend`
+  - `npm install react-email @react-email/components` (email templates)
+  - Set up Resend account and get API key
+
+#### Additional Utilities
+- [ ] Install other dependencies:
+  - `npm install axios` (API requests)
+  - `npm install slugify` (URL slugs)
+  - `npm install sharp` (image optimization)
+
+### 2. Environment Configuration [ ]
+
+- [ ] Set up `.env.local` with required variables:
+  ```
+  DATABASE_URL="postgresql://..."
+  AUTH_SECRET="generate-with-openssl"
+  AUTH_URL="http://localhost:3000"
+  STRIPE_SECRET_KEY="sk_test_..."
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+  UPLOADTHING_SECRET="..."
+  UPLOADTHING_APP_ID="..."
+  RESEND_API_KEY="..."
+  ```
+- [ ] Create `.env.example` template for documentation
+
+### 3. Database Schema and Setup [ ]
+
+- [ ] Design and implement Prisma schema:
+  - [ ] User model (id, name, email, password, role, emailVerified, image, createdAt, updatedAt)
+  - [ ] Account model (NextAuth OAuth accounts)
+  - [ ] Session model (NextAuth sessions)
+  - [ ] Category model (id, name, slug, description, image, parentId, createdAt)
+  - [ ] Product model (id, name, slug, description, price, compareAtPrice, stock, images, categoryId, featured, tags, createdAt, updatedAt)
+  - [ ] Cart model (id, userId, createdAt, updatedAt)
+  - [ ] CartItem model (id, cartId, productId, quantity)
+  - [ ] Order model (id, userId, status, total, subtotal, tax, shipping, stripePaymentIntentId, shippingAddress, billingAddress, createdAt, updatedAt)
+  - [ ] OrderItem model (id, orderId, productId, quantity, price)
+  - [ ] Review model (id, productId, userId, rating, comment, createdAt, updatedAt)
+  - [ ] Wishlist model (id, userId, productId, createdAt)
+- [ ] Run `npx prisma generate` to generate Prisma Client
+- [ ] Run `npx prisma db push` to create database tables
+- [ ] Create seed script for initial data (categories, sample products)
+
+### 4. Authentication Setup (NextAuth v5) [ ]
+
+- [ ] Create `auth.ts` in project root:
+  - Configure NextAuth with Prisma adapter
+  - Set up Credentials provider (email/password)
+  - Add OAuth providers (Google, GitHub)
+  - Configure JWT and session strategy
+  - Add custom callbacks (jwt, session)
+- [ ] Create `auth.config.ts` for auth configuration
+- [ ] Create `middleware.ts` for route protection:
+  - Protect admin routes (matcher: `/admin/:path*`)
+  - Protect user dashboard routes (matcher: `/dashboard/:path*`)
+  - Protect checkout routes
+- [ ] Create auth API routes:
+  - `app/api/auth/[...nextauth]/route.ts`
+- [ ] Create auth UI pages:
+  - `app/(auth)/sign-in/page.tsx`
+  - `app/(auth)/sign-up/page.tsx`
+  - `app/(auth)/forgot-password/page.tsx`
+
+### 5. Core API Routes [ ]
+
+#### Product APIs
+- [ ] `app/api/products/route.ts` (GET all, POST create)
+- [ ] `app/api/products/[id]/route.ts` (GET one, PATCH update, DELETE)
+- [ ] `app/api/products/search/route.ts` (search with filters)
+- [ ] `app/api/products/featured/route.ts` (get featured products)
+
+#### Category APIs
+- [ ] `app/api/categories/route.ts` (GET all, POST create)
+- [ ] `app/api/categories/[id]/route.ts` (GET one, PATCH update, DELETE)
+
+#### Cart APIs
+- [ ] `app/api/cart/route.ts` (GET cart, POST add item)
+- [ ] `app/api/cart/[itemId]/route.ts` (PATCH update quantity, DELETE item)
+- [ ] `app/api/cart/clear/route.ts` (DELETE clear cart)
+
+#### Order APIs
+- [ ] `app/api/orders/route.ts` (GET user orders, POST create order)
+- [ ] `app/api/orders/[id]/route.ts` (GET one order)
+- [ ] `app/api/admin/orders/route.ts` (GET all orders for admin)
+- [ ] `app/api/admin/orders/[id]/route.ts` (PATCH update status)
+
+#### Review APIs
+- [ ] `app/api/products/[id]/reviews/route.ts` (GET reviews, POST create)
+- [ ] `app/api/reviews/[id]/route.ts` (PATCH update, DELETE)
+
+#### Stripe APIs
+- [ ] `app/api/stripe/create-payment-intent/route.ts`
+- [ ] `app/api/stripe/webhooks/route.ts` (handle payment events)
+
+#### Uploadthing APIs
+- [ ] `app/api/uploadthing/route.ts` (file upload endpoint)
+- [ ] `app/api/uploadthing/core.ts` (upload configuration)
+
+#### Analytics APIs (Admin)
+- [ ] `app/api/admin/analytics/revenue/route.ts`
+- [ ] `app/api/admin/analytics/orders/route.ts`
+- [ ] `app/api/admin/analytics/customers/route.ts`
+- [ ] `app/api/admin/analytics/products/route.ts`
+
+### 6. Customer-Facing Pages [ ]
+
+#### Layout and Navigation
+- [ ] Create `app/(shop)/layout.tsx`:
+  - Header component with logo, search, navigation, cart icon, user menu
+  - Footer component with links, newsletter signup, social media
+  - Mobile responsive navigation
+- [ ] Create global search component with debounce
+- [ ] Create shopping cart sidebar/modal
+
+#### Homepage
+- [ ] Create `app/(shop)/page.tsx`:
+  - Hero section with banner carousel (using embla-carousel or swiper)
+  - Featured categories grid
+  - Featured products section
+  - Latest products section
+  - Promotional banners
+  - Newsletter signup
+
+#### Product Pages
+- [ ] Create `app/(shop)/products/page.tsx` (product listing):
+  - Sidebar with category filters
+  - Price range filter
+  - Brand/tag filters
+  - Sort options (price, popularity, newest)
+  - Product grid with pagination
+  - View toggle (grid/list)
+- [ ] Create `app/(shop)/products/[slug]/page.tsx` (product detail):
+  - Image gallery with zoom functionality
+  - Product info (title, price, stock, description)
+  - Variant selector (size, color if applicable)
+  - Quantity selector
+  - Add to cart button
+  - Add to wishlist button
+  - Product tabs (description, specifications, reviews)
+  - Reviews section with rating statistics
+  - Add review form (authenticated users)
+  - Related products carousel
+
+#### Cart and Checkout
+- [ ] Create `app/(shop)/cart/page.tsx`:
+  - Cart items list with image, title, price, quantity controls
+  - Remove item functionality
+  - Update quantity
+  - Cart summary (subtotal, tax, shipping estimate, total)
+  - Continue shopping button
+  - Proceed to checkout button
+  - Empty cart state
+- [ ] Create `app/(shop)/checkout/page.tsx`:
+  - Multi-step checkout process:
+    1. Shipping information form
+    2. Payment method (Stripe integration)
+    3. Order review
+  - Stripe Elements integration
+  - Form validation with Zod
+  - Order summary sidebar
+  - Apply coupon code (if implemented)
+- [ ] Create `app/(shop)/checkout/success/page.tsx`:
+  - Order confirmation page
+  - Order details
+  - Email confirmation message
+  - Continue shopping button
+
+#### User Dashboard
+- [ ] Create `app/(shop)/dashboard/layout.tsx`:
+  - Sidebar with navigation (orders, profile, addresses, wishlist)
+- [ ] Create `app/(shop)/dashboard/page.tsx`:
+  - Overview of recent orders
+  - Account information summary
+- [ ] Create `app/(shop)/dashboard/orders/page.tsx`:
+  - Order history table
+  - Order status badges
+  - View order details link
+- [ ] Create `app/(shop)/dashboard/orders/[id]/page.tsx`:
+  - Detailed order information
+  - Order items list
+  - Shipping tracking (if available)
+  - Download invoice button
+- [ ] Create `app/(shop)/dashboard/profile/page.tsx`:
+  - Edit profile form (name, email, password)
+  - Profile picture upload
+- [ ] Create `app/(shop)/dashboard/addresses/page.tsx`:
+  - Saved addresses list
+  - Add/edit/delete addresses
+  - Set default shipping/billing address
+- [ ] Create `app/(shop)/dashboard/wishlist/page.tsx`:
+  - Wishlist items grid
+  - Add to cart from wishlist
+  - Remove from wishlist
+
+### 7. Admin Dashboard [ ]
+
+#### Layout and Navigation
+- [ ] Create `app/admin/layout.tsx`:
+  - Sidebar navigation with icons:
+    - Dashboard overview
+    - Products
+    - Categories
+    - Orders
+    - Customers
+    - Analytics
+    - Settings
+  - Top bar with admin user menu
+  - Responsive mobile navigation
+  - Role-based access control (admin only)
+
+#### Dashboard Overview
+- [ ] Create `app/admin/page.tsx`:
+  - Key metrics cards:
+    - Total revenue (with percentage change)
+    - Total orders (with percentage change)
+    - Total customers (with percentage change)
+    - Average order value (with percentage change)
+  - Revenue chart (line chart with Recharts):
+    - Date range selector (7d, 30d, 90d, 1y, custom)
+    - Revenue over time
+    - Comparison with previous period
+  - Recent orders table:
+    - Order ID, customer, total, status, date
+    - Quick actions (view, update status)
+    - Pagination
+  - Top selling products widget
+  - Low stock alerts
+  - Customer growth chart
+
+#### Product Management
+- [ ] Create `app/admin/products/page.tsx`:
+  - Products data table with:
+    - Image thumbnail, name, SKU, stock, price, status, category
+    - Search and filter functionality
+    - Bulk actions (delete, update status)
+    - Sort by columns
+    - Pagination
+  - Add new product button
+- [ ] Create `app/admin/products/new/page.tsx`:
+  - Product creation form:
+    - Basic info (name, description, slug)
+    - Pricing (price, compare at price, cost per item)
+    - Images upload (Uploadthing - multiple images)
+    - Inventory (SKU, stock, track quantity)
+    - Category selection
+    - Tags/attributes
+    - SEO fields (meta title, description)
+    - Featured checkbox
+  - Form validation with Zod
+  - Image upload with preview and reordering
+- [ ] Create `app/admin/products/[id]/edit/page.tsx`:
+  - Edit product form (same as create)
+  - Pre-populated with existing data
+  - Delete product button
+- [ ] Create `app/admin/products/[id]/page.tsx`:
+  - View product details
+  - Quick edit actions
+  - Sales statistics for this product
+
+#### Category Management
+- [ ] Create `app/admin/categories/page.tsx`:
+  - Categories table with hierarchy display
+  - Add category button
+  - Edit/delete actions
+  - Drag and drop reordering
+- [ ] Create category dialog/modal:
+  - Name, slug, description
+  - Parent category selection
+  - Category image upload
+  - Display order
+
+#### Order Management
+- [ ] Create `app/admin/orders/page.tsx`:
+  - Orders data table:
+    - Order number, customer, date, total, status, payment status
+    - Filter by status (pending, processing, shipped, delivered, cancelled)
+    - Date range filter
+    - Search by order number or customer
+    - Export orders (CSV)
+    - Pagination
+- [ ] Create `app/admin/orders/[id]/page.tsx`:
+  - Order details view:
+    - Customer information
+    - Order items with images
+    - Shipping address
+    - Billing address
+    - Payment information
+    - Order timeline/history
+    - Status update dropdown
+    - Add tracking number
+    - Print invoice button
+    - Refund button (with Stripe integration)
+    - Notes section (internal notes)
+
+#### Customer Management
+- [ ] Create `app/admin/customers/page.tsx`:
+  - Customers data table:
+    - Name, email, total orders, total spent, join date
+    - Search by name or email
+    - Filter by registration date
+    - Sort by columns
+    - Export customers (CSV)
+  - Customer details modal/page
+- [ ] Create `app/admin/customers/[id]/page.tsx`:
+  - Customer profile
+  - Order history
+  - Total revenue from customer
+  - Account status (active, suspended)
+  - Edit customer details
+  - Customer notes
+
+#### Analytics and Reports
+- [ ] Create `app/admin/analytics/page.tsx`:
+  - Revenue analytics:
+    - Revenue over time (line chart)
+    - Revenue by category (pie chart)
+    - Revenue by product (bar chart)
+  - Sales analytics:
+    - Orders over time
+    - Order status distribution
+    - Average order value trend
+  - Customer analytics:
+    - New vs returning customers
+    - Customer acquisition over time
+    - Customer lifetime value
+  - Product analytics:
+    - Top selling products
+    - Product performance comparison
+    - Low performing products
+  - Date range selector for all charts
+  - Export report button (PDF/CSV)
+
+#### Settings
+- [ ] Create `app/admin/settings/page.tsx`:
+  - Store settings:
+    - Store name, description, logo
+    - Contact information
+    - Currency, timezone
+  - Shipping settings:
+    - Shipping zones
+    - Shipping rates
+    - Free shipping threshold
+  - Tax settings:
+    - Tax rates by region
+    - Tax calculation method
+  - Email settings:
+    - Order confirmation template
+    - Shipping notification template
+  - Payment settings:
+    - Stripe configuration
+    - Accepted payment methods
+
+### 8. Zustand State Management [ ]
+
+- [ ] Create `store/cart-store.ts`:
+  - Cart state (items, total)
+  - Add to cart action
+  - Remove from cart action
+  - Update quantity action
+  - Clear cart action
+  - Persist cart to localStorage
+- [ ] Create `store/user-store.ts`:
+  - User state
+  - Authentication status
+  - User preferences
+- [ ] Create `store/ui-store.ts`:
+  - Modal states
+  - Sidebar open/close
+  - Loading states
+  - Toast notifications
+
+### 9. Email System (Resend) [ ]
+
+- [ ] Create email templates in `emails/`:
+  - [ ] `emails/order-confirmation.tsx` (React Email template)
+  - [ ] `emails/shipping-notification.tsx`
+  - [ ] `emails/order-delivered.tsx`
+  - [ ] `emails/password-reset.tsx`
+  - [ ] `emails/welcome.tsx`
+- [ ] Create email utility functions:
+  - [ ] `lib/email/send-order-confirmation.ts`
+  - [ ] `lib/email/send-shipping-notification.ts`
+  - [ ] `lib/email/send-password-reset.ts`
+- [ ] Integrate email sending in:
+  - Order creation
+  - Order status updates
+  - User registration
+  - Password reset flow
+
+### 10. Advanced Features [ ]
+
+#### Search Functionality
+- [ ] Implement full-text search:
+  - Product search with filters
+  - Search suggestions/autocomplete
+  - Recent searches
+  - Search analytics
+
+#### Notifications
+- [ ] Implement real-time notifications:
+  - Order status updates
+  - Low stock alerts (admin)
+  - New order notifications (admin)
+  - Toast notifications for user actions
+
+#### Performance Optimization
+- [ ] Image optimization:
+  - Use Next.js Image component
+  - Implement lazy loading
+  - Generate optimized image sizes
+  - WebP format with fallback
+- [ ] Implement caching:
+  - React Query for API data
+  - Redis for session storage (optional)
+  - CDN for static assets
+- [ ] Code splitting and lazy loading:
+  - Dynamic imports for heavy components
+  - Route-based code splitting
+  - Lazy load charts on admin dashboard
+- [ ] Database optimization:
+  - Add database indexes
+  - Optimize Prisma queries
+  - Implement pagination
+
+#### SEO Optimization
+- [ ] Implement SEO features:
+  - Dynamic meta tags for products
+  - Open Graph tags
+  - Structured data (JSON-LD) for products
+  - XML sitemap generation
+  - Robots.txt
+
+#### Additional Features
+- [ ] Product reviews moderation (admin)
+- [ ] Coupon/discount system
+- [ ] Product variants (size, color)
+- [ ] Inventory management
+- [ ] Bulk product import (CSV)
+- [ ] Multi-currency support
+- [ ] Abandoned cart recovery emails
+
+### 11. Testing [ ]
+
+- [ ] Set up testing environment:
+  - Install Jest and React Testing Library
+  - Configure test setup files
+- [ ] Unit tests:
+  - API route handlers
+  - Utility functions
+  - Validation schemas (Zod)
+- [ ] Integration tests:
+  - Authentication flow
+  - Cart functionality
+  - Checkout process
+  - Order creation
+- [ ] E2E tests with Playwright:
+  - User registration and login
+  - Product browsing and search
+  - Add to cart and checkout flow
+  - Admin product creation
+  - Order management
+
+### 12. Security [ ]
+
+- [ ] Security audit:
+  - [ ] Implement rate limiting for API routes
+  - [ ] Add CSRF protection
+  - [ ] Sanitize user inputs
+  - [ ] Implement proper error handling (no sensitive data in errors)
+  - [ ] Validate file uploads (type, size)
+  - [ ] Secure environment variables
+  - [ ] Add security headers (next.config.ts)
+  - [ ] Implement role-based access control (RBAC)
+  - [ ] Add SQL injection prevention (Prisma ORM handles this)
+  - [ ] XSS protection (React handles this, but validate rich text)
+
+### 13. Deployment [ ]
+
+- [ ] Prepare for production:
+  - [ ] Set up production database (PostgreSQL on Vercel, Railway, or Supabase)
+  - [ ] Configure environment variables in hosting platform
+  - [ ] Set up Stripe webhooks endpoint
+  - [ ] Configure domain and SSL
+- [ ] Deploy to Vercel:
+  - [ ] Connect GitHub repository
+  - [ ] Configure build settings
+  - [ ] Set up preview deployments
+  - [ ] Configure production environment
+- [ ] Post-deployment:
+  - [ ] Run database migrations
+  - [ ] Seed initial data
+  - [ ] Test production deployment
+  - [ ] Monitor errors with Sentry (optional)
+  - [ ] Set up uptime monitoring
+  - [ ] Configure CDN for assets
+
+### 14. Documentation [ ]
+
+- [ ] Create comprehensive documentation:
+  - [ ] `README.md` with project overview and setup instructions
+  - [ ] API documentation (endpoints, request/response formats)
+  - [ ] Database schema documentation
+  - [ ] Deployment guide
+  - [ ] Admin user guide
+  - [ ] Contributing guidelines
+  - [ ] Environment variables reference
+  - [ ] Troubleshooting guide
