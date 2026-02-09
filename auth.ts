@@ -5,8 +5,6 @@ import pg from 'pg'
 import authConfig from './auth.config'
 import { compare } from 'bcrypt'
 import Credentials from 'next-auth/providers/credentials'
-import Google from 'next-auth/providers/google'
-import GitHub from 'next-auth/providers/github'
 import { User } from '@prisma/client'
 
 // Create PostgreSQL connection pool
@@ -27,23 +25,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // error: '/auth/error',
   },
   providers: [
-    // OAuth providers (optional - only initialized if env vars are set)
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? [
-          GitHub({
-            clientId: process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          }),
-        ]
-      : []),
     Credentials({
       name: 'credentials',
       credentials: {
