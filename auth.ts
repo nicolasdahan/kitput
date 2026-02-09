@@ -1,27 +1,9 @@
 import NextAuth from 'next-auth'
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import pg from 'pg'
+import { prisma } from './lib/prisma'
 import authConfig from './auth.config'
 import { compare } from 'bcrypt'
 import Credentials from 'next-auth/providers/credentials'
 import { User } from '@prisma/client'
-
-// Create PostgreSQL connection pool with explicit SSL mode
-const databaseUrl = process.env.DATABASE_URL || ''
-const connectionString = databaseUrl.includes('sslmode=')
-  ? databaseUrl
-  : databaseUrl.includes('?')
-  ? `${databaseUrl}&sslmode=verify-full`
-  : `${databaseUrl}?sslmode=verify-full`
-
-const pool = new pg.Pool({ connectionString })
-
-// Create Prisma adapter
-const adapter = new PrismaPg(pool)
-
-// Initialize Prisma Client with adapter
-const prisma = new PrismaClient({ adapter })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: '/api/auth',
